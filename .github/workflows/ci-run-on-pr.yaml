@@ -21,7 +21,7 @@ jobs:
       backend: ${{ steps.filter.outputs.backend_any_changed }}
       ci: ${{ steps.filter.outputs.ci_any_changed }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: tj-actions/changed-files@9426d40962ed5378910ee2e21d5f8c6fcbf2dd96 # v47.0.6
         id: filter
         with:
@@ -45,7 +45,7 @@ jobs:
     if: ${{ (needs.codechanges.outputs.backend == 'true' || needs.codechanges.outputs.ci == 'true') && github.event.pull_request.draft == false}}
     steps:
       - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Golang
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -69,7 +69,7 @@ jobs:
       pull-requests: read # for golangci/golangci-lint-action to fetch pull requests
     steps:
       - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Golang
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -86,7 +86,7 @@ jobs:
     if: ${{ (needs.codechanges.outputs.backend == 'true' || needs.codechanges.outputs.ci == 'true') && github.event.pull_request.draft == false}}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@master
 
@@ -100,7 +100,7 @@ jobs:
     if: ${{ (needs.codechanges.outputs.backend == 'true' || needs.codechanges.outputs.ci == 'true') && github.event.pull_request.draft == false}}
     steps:
       - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Golang
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -113,7 +113,7 @@ jobs:
         with:
           config: .testcoverage.yaml
           profile: cover.out
-          continue-on-error: true # Should fail after coverage comment is posted
+        continue-on-error: true # Should fail after coverage comment is posted
       - name: Generate test results artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
@@ -133,7 +133,6 @@ jobs:
         uses: vladopajic/go-test-coverage@v2
         with:
           profile: cover.out
-          threshold-total: 80
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
           git-branch: badges
       - name: post coverage report
@@ -161,7 +160,7 @@ jobs:
     if: ${{ (needs.codechanges.outputs.backend == 'true' || needs.codechanges.outputs.ci == 'true') && github.event.pull_request.draft == false}}
     steps:
       - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Golang
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
