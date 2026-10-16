@@ -12,6 +12,8 @@ import (
 	"github.com/pgvillage-tools/specbuilder/pkg/spec"
 )
 
+const readWriteUser = 0o644
+
 func envOrDefault(key, def string) string {
 	if v, ok := os.LookupEnv(key); ok {
 		return v
@@ -74,7 +76,7 @@ func writeSpec(client *github.Client, repoCfg config.Repository, tpl, dest strin
 	}
 	destFile := filepath.Join(dest, fmt.Sprintf("%s-%v.spec", repoCfg.Name, repo["package_arch"]))
 	fmt.Printf("Writing to %s\n", destFile)
-	if err := os.WriteFile(destFile, []byte(content), 0o644); err != nil {
+	if err := os.WriteFile(destFile, []byte(content), readWriteUser); err != nil {
 		return fmt.Errorf("writing spec for %s: %w", repoCfg.Name, err)
 	}
 	return nil
