@@ -55,7 +55,7 @@ func (c *Client) baseURL(site string) string {
 	return "https://api." + site
 }
 
-func (c *Client) get(url string, target any) error {
+func (c *Client) get(url string, target any) (err error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -72,7 +72,11 @@ func (c *Client) get(url string, target any) error {
 	if err != nil {
 		return fmt.Errorf("requesting %s: %w", url, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil && err == nil {
+			err = fmt.Errorf("closing response body from %s: %w", url, closeErr)
+		}
+	}()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("requesting %s: unexpected status %s", url, resp.Status)
 	}
