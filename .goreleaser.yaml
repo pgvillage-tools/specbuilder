@@ -23,7 +23,7 @@ builds:
     goarch:
       - amd64
       - arm64
-    main: ./cmd/api
+    main: ./cmd/specbuilder
     binary: specbuilder
     ldflags:
       - -s -w -X "cmd.Version={{.Version}}"
