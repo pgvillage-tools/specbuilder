@@ -25,7 +25,7 @@ COPY pkg/ pkg/
 # by leaving it empty we can ensure that the container and binary shipped on it will have the same platform.
 RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} \
     go build -v -a \
-    -ldflags="-X 'github.com/pgvillage-tools/specbuilder/cmd.Version=$VERSION'" -o orion-api ./cmd/specbuilder
+    -ldflags="-X 'github.com/pgvillage-tools/specbuilder/cmd.Version=$VERSION'" -o specbuilder ./cmd/specbuilder
 
 FROM docker.io/debian:bookworm-slim
 
