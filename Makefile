@@ -53,7 +53,7 @@ check-coverage: install-go-test-coverage test
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: build-images
 build-images: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t specbuilder -f Containerfilefile .
+	$(CONTAINER_TOOL) build -t specbuilder -f Containerfile .
 
 .PHONY: clean-e2e-containers
 clean-e2e-containers: ## Clean containers for previous e2e runs
