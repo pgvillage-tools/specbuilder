@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
+	"unicode"
 
 	"github.com/pgvillage-tools/specbuilder/pkg/config"
 	"github.com/pgvillage-tools/specbuilder/pkg/github"
@@ -27,18 +29,54 @@ func main() {
 		"path to the config file (env: GITHUB2SPEC_CONFIG)")
 	dest := flag.String("dest", "",
 		"destination folder for spec files (default: 'dest' from config, else $GITHUB2SPEC_DEST, else /tmp)")
+	only := flag.String("only", os.Getenv("SPECBUILDER_ONLY"),
+		"only generate these repositories, separated by commas or spaces (env: SPECBUILDER_ONLY)")
+	changed := flag.String("changed", "",
+		"print the repositories that are new or changed compared to this config file, instead of generating")
 	flag.Parse()
 
-	if err := run(*configFile, *dest); err != nil {
+	var err error
+	if *changed != "" {
+		err = printChanged(*changed, *configFile)
+	} else {
+		err = run(*configFile, *dest, splitNames(*only))
+	}
+	if err != nil {
 		fmt.Fprintln(os.Stderr, "error:", err)
 		os.Exit(1)
 	}
 }
 
-func run(configFile, dest string) error {
+// splitNames splits a list of names, separated by commas and/or whitespace.
+func splitNames(names string) []string {
+	return strings.FieldsFunc(names, func(r rune) bool { return r == ',' || unicode.IsSpace(r) })
+}
+
+// printChanged prints the repositories in configFile that are new or changed compared to baseFile, one per line.
+func printChanged(baseFile, configFile string) error {
+	base, err := config.Load(baseFile)
+	if err != nil {
+		return err
+	}
 	cfg, err := config.Load(configFile)
 	if err != nil {
 		return err
+	}
+	for _, name := range config.Changed(base, cfg) {
+		fmt.Println(name)
+	}
+	return nil
+}
+
+func run(configFile, dest string, only []string) error {
+	cfg, err := config.Load(configFile)
+	if err != nil {
+		return err
+	}
+	if len(only) > 0 {
+		if cfg.Repositories, err = cfg.Repositories.Select(only); err != nil {
+			return err
+		}
 	}
 	if dest == "" {
 		dest = cfg.Dest

@@ -27,14 +27,17 @@ go build ./cmd/specbuilder
 ## Usage
 
 ```
-specbuilder [-config <file>] [-dest <folder>]
+specbuilder [-config <file>] [-dest <folder>] [-only <names>]
+specbuilder [-config <file>] -changed <base config file>
 ```
 
-| Flag      | Environment variable | Default                                  | Description                       |
-|-----------|----------------------|------------------------------------------|-----------------------------------|
-| `-config` | `GITHUB2SPEC_CONFIG` | `/usr/rpmbuilder/conf/github2spec.yaml`  | Path to the config file           |
-| `-dest`   | `GITHUB2SPEC_DEST`   | `/tmp`                                   | Folder to write the spec files to |
-|           | `GITHUB_TOKEN`       |                                          | GitHub token (optional)           |
+| Flag       | Environment variable | Default                                  | Description                                                        |
+|------------|----------------------|------------------------------------------|--------------------------------------------------------------------|
+| `-config`  | `GITHUB2SPEC_CONFIG` | `/usr/rpmbuilder/conf/github2spec.yaml`  | Path to the config file                                            |
+| `-dest`    | `GITHUB2SPEC_DEST`   | `/tmp`                                   | Folder to write the spec files to                                  |
+| `-only`    | `SPECBUILDER_ONLY`   | all repositories                         | Only generate these repositories (separated by commas or spaces)   |
+| `-changed` |                      |                                          | Print the repositories that changed compared to this config file   |
+|            | `GITHUB_TOKEN`       |                                          | GitHub token (optional)                                            |
 
 The destination folder is taken from `-dest`, then from `dest` in the config file, then from
 `GITHUB2SPEC_DEST`, and falls back to `/tmp`.
@@ -59,6 +62,22 @@ other repositories, and exits with a non-zero exit code.
 
 The spec files are generated for the architecture specbuilder runs on. To generate specs for another architecture,
 run specbuilder on that architecture, or set `package_arch` and `binary_arch` in the config.
+
+### Only building what changed
+
+`-changed` compares the config with an older version of it (for example the one on the base branch of a pull
+request) and prints the repositories that are new or have other values, one per line, without generating anything or
+calling the GitHub API. Comments and the order of keys don't count. When `template` or `dest` changed, all
+repositories are printed. Repositories that were removed are left out.
+
+Together with `-only`, a pull request that bumps a version only generates (and builds) that package:
+
+```
+git show origin/main:conf/github2spec.yaml > /tmp/base.yaml
+specbuilder -config conf/github2spec.yaml -only "$(specbuilder -config conf/github2spec.yaml -changed /tmp/base.yaml)"
+```
+
+Note that an empty `-only` generates all repositories.
 
 ## Configuration
 
