@@ -4,6 +4,8 @@ package config
 import (
 	"fmt"
 	"os"
+	"reflect"
+	"slices"
 
 	"gopkg.in/yaml.v3"
 )
@@ -35,6 +37,33 @@ func (r *Repositories) UnmarshalYAML(node *yaml.Node) error {
 	return nil
 }
 
+// Names returns the names of the repositories, in config order.
+func (r Repositories) Names() []string {
+	names := make([]string, 0, len(r))
+	for _, repo := range r {
+		names = append(names, repo.Name)
+	}
+	return names
+}
+
+// Select returns the repositories with the given names, in config order.
+// It fails when a name is not in the config.
+func (r Repositories) Select(names []string) (Repositories, error) {
+	known := r.Names()
+	for _, name := range names {
+		if !slices.Contains(known, name) {
+			return nil, fmt.Errorf("repository %s is not in the config", name)
+		}
+	}
+	var selected Repositories
+	for _, repo := range r {
+		if slices.Contains(names, repo.Name) {
+			selected = append(selected, repo)
+		}
+	}
+	return selected, nil
+}
+
 // Config is the specbuilder configuration.
 type Config struct {
 	Template     string       `yaml:"template"`
@@ -56,4 +85,24 @@ func Load(path string) (Config, error) {
 		return cfg, fmt.Errorf("config %s: missing 'template'", path)
 	}
 	return cfg, nil
+}
+
+// Changed returns the names of the repositories in cfg that are new or have other values than in base, in config
+// order. When the template or the destination differ, all repositories in cfg have changed.
+// Repositories that are only in base are left out, as there is nothing to build for them.
+func Changed(base, cfg Config) []string {
+	if base.Template != cfg.Template || base.Dest != cfg.Dest {
+		return cfg.Repositories.Names()
+	}
+	baseValues := map[string]map[string]any{}
+	for _, repo := range base.Repositories {
+		baseValues[repo.Name] = repo.Values
+	}
+	var changed []string
+	for _, repo := range cfg.Repositories {
+		if values, ok := baseValues[repo.Name]; !ok || !reflect.DeepEqual(values, repo.Values) {
+			changed = append(changed, repo.Name)
+		}
+	}
+	return changed
 }
