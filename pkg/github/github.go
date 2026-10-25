@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -109,10 +110,19 @@ func (c *Client) GetRepo(site, organization, repository string) (Repo, error) {
 	return repo, nil
 }
 
-// GetRelease reads release info. release is 'latest', or another release path like 'tags/v1.0.0'.
+// releasePath returns the API path below releases/ for release: 'latest' and 'tags/<tag>' are used as is,
+// anything else is taken as a plain tag.
+func releasePath(release string) string {
+	if release == "latest" {
+		return release
+	}
+	return "tags/" + strings.TrimPrefix(release, "tags/")
+}
+
+// GetRelease reads release info. release is 'latest' or a tag, like 'v1.0.0' or 'tags/v1.0.0'.
 func (c *Client) GetRelease(site, organization, repository, release string) (Release, error) {
 	var data Release
-	url := fmt.Sprintf("%s/repos/%s/%s/releases/%s", c.baseURL(site), organization, repository, release)
+	url := fmt.Sprintf("%s/repos/%s/%s/releases/%s", c.baseURL(site), organization, repository, releasePath(release))
 	if err := c.get(url, &data); err != nil {
 		return Release{}, err
 	}
