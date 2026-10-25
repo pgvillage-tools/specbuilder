@@ -84,15 +84,15 @@ func run(configFile, dest string, only []string) error {
 	if dest == "" {
 		dest = envOrDefault("GITHUB2SPEC_DEST", "/tmp")
 	}
-	tpl, err := os.ReadFile(cfg.Template)
-	if err != nil {
-		return fmt.Errorf("reading template: %w", err)
-	}
-
 	client := github.NewClient(os.Getenv("GITHUB_TOKEN"))
+	templates := map[string]string{}
 	var failed []string
 	for _, repoCfg := range cfg.Repositories {
-		if err := writeSpec(client, repoCfg, string(tpl), dest); err != nil {
+		tpl, err := readTemplate(templates, cfg.TemplateOf(repoCfg))
+		if err == nil {
+			err = writeSpec(client, repoCfg, tpl, dest)
+		}
+		if err != nil {
 			fmt.Fprintln(os.Stderr, "error:", err)
 			failed = append(failed, repoCfg.Name)
 		}
@@ -101,6 +101,19 @@ func run(configFile, dest string, only []string) error {
 		return fmt.Errorf("failed to build specs for %v", failed)
 	}
 	return nil
+}
+
+// readTemplate reads a template file, caching it in templates, as most repositories share the same template.
+func readTemplate(templates map[string]string, path string) (string, error) {
+	if tpl, ok := templates[path]; ok {
+		return tpl, nil
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("reading template: %w", err)
+	}
+	templates[path] = string(data)
+	return templates[path], nil
 }
 
 func writeSpec(client *github.Client, repoCfg config.Repository, tpl, dest string) error {

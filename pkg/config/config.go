@@ -65,6 +65,7 @@ func (r Repositories) Select(names []string) (Repositories, error) {
 }
 
 // Config is the specbuilder configuration.
+// Template is the default template; a repository can use another one with its own 'template' value.
 type Config struct {
 	Template     string       `yaml:"template"`
 	Dest         string       `yaml:"dest"`
@@ -81,26 +82,42 @@ func Load(path string) (Config, error) {
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return cfg, fmt.Errorf("parsing config %s: %w", path, err)
 	}
-	if cfg.Template == "" {
-		return cfg, fmt.Errorf("config %s: missing 'template'", path)
+	for _, repo := range cfg.Repositories {
+		if tpl, ok := repo.Values["template"]; ok {
+			if s, isString := tpl.(string); !isString || s == "" {
+				return cfg, fmt.Errorf("config %s: 'template' of repository %s should be a path", path, repo.Name)
+			}
+		} else if cfg.Template == "" {
+			return cfg, fmt.Errorf("config %s: missing 'template' (for repository %s)", path, repo.Name)
+		}
 	}
 	return cfg, nil
 }
 
-// Changed returns the names of the repositories in cfg that are new or have other values than in base, in config
-// order. When the template or the destination differ, all repositories in cfg have changed.
+// TemplateOf returns the template for repo: its own 'template' value, or else the default template of the config.
+func (c Config) TemplateOf(repo Repository) string {
+	if tpl, ok := repo.Values["template"].(string); ok {
+		return tpl
+	}
+	return c.Template
+}
+
+// Changed returns the names of the repositories in cfg that are new, have other values or use another template than
+// in base, in config order. When the destination differs, all repositories in cfg have changed.
 // Repositories that are only in base are left out, as there is nothing to build for them.
 func Changed(base, cfg Config) []string {
-	if base.Template != cfg.Template || base.Dest != cfg.Dest {
+	if base.Dest != cfg.Dest {
 		return cfg.Repositories.Names()
 	}
-	baseValues := map[string]map[string]any{}
+	baseRepos := map[string]Repository{}
 	for _, repo := range base.Repositories {
-		baseValues[repo.Name] = repo.Values
+		baseRepos[repo.Name] = repo
 	}
 	var changed []string
 	for _, repo := range cfg.Repositories {
-		if values, ok := baseValues[repo.Name]; !ok || !reflect.DeepEqual(values, repo.Values) {
+		baseRepo, ok := baseRepos[repo.Name]
+		if !ok || !reflect.DeepEqual(baseRepo.Values, repo.Values) ||
+			base.TemplateOf(baseRepo) != cfg.TemplateOf(repo) {
 			changed = append(changed, repo.Name)
 		}
 	}

@@ -31,11 +31,43 @@ func TestLoadKeepsRepositoryOrder(t *testing.T) {
 
 func TestLoadRequiresTemplate(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.yaml")
-	if err := os.WriteFile(path, []byte("repositories: {}\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("repositories:\n  a:\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := Load(path); err == nil {
 		t.Error("expected an error")
+	}
+}
+
+func TestLoadPerEntryTemplate(t *testing.T) {
+	cfg := loadString(t, "repositories:\n  own:\n    template: own.j2\n")
+	if got := cfg.TemplateOf(cfg.Repositories[0]); got != "own.j2" {
+		t.Errorf("unexpected template: %q", got)
+	}
+	cfg = loadString(t, "template: spec.j2\nrepositories:\n  own:\n    template: own.j2\n  default:\n")
+	if got := cfg.TemplateOf(cfg.Repositories[0]); got != "own.j2" {
+		t.Errorf("unexpected template for own: %q", got)
+	}
+	if got := cfg.TemplateOf(cfg.Repositories[1]); got != "spec.j2" {
+		t.Errorf("unexpected template for default: %q", got)
+	}
+}
+
+func TestLoadInvalidTemplate(t *testing.T) {
+	for name, data := range map[string]string{
+		"no default":   "repositories:\n  own:\n    template: own.j2\n  default:\n",
+		"not a string": "template: spec.j2\nrepositories:\n  own:\n    template: [own.j2]\n",
+		"empty":        "template: spec.j2\nrepositories:\n  own:\n    template: ''\n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "config.yaml")
+			if err := os.WriteFile(path, []byte(data), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := Load(path); err == nil {
+				t.Error("expected an error")
+			}
+		})
 	}
 }
 
@@ -76,6 +108,8 @@ repositories:
     target_release: v1.0.0
     files:
       - src: a
+  own:
+    template: own.j2
   removed:
 `
 	for _, tc := range []struct {
@@ -116,14 +150,32 @@ repositories:
     files:
       - src: b
 `, []string{"bumped"}},
-		{"template", `template: other.j2
+		{"default template", `template: other.j2
 dest: /out
 repositories:
   same:
     organization: org
   bumped:
     target_release: v1.0.0
+  own:
+    template: own.j2
 `, []string{"same", "bumped"}},
+		{"own template", `template: spec.j2
+dest: /out
+repositories:
+  same:
+    organization: org
+  own:
+    template: other.j2
+`, []string{"own"}},
+		{"dest", `template: spec.j2
+dest: /other
+repositories:
+  same:
+    organization: org
+  own:
+    template: own.j2
+`, []string{"same", "own"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			if got := Changed(loadString(t, base), loadString(t, tc.cfg)); !slices.Equal(got, tc.want) {
