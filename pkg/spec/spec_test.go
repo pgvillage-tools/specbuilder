@@ -65,6 +65,8 @@ func TestNewRepo(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := map[string]any{
+		"name":         "etcd",
+		"repository":   "etcd",
 		"url":          "https://github.com/etcd-io/etcd",
 		"version":      "v3.5.0",
 		"license":      "Apache-2.0",
@@ -83,6 +85,26 @@ func TestNewRepo(t *testing.T) {
 	}
 	if fetcher.calls[1] != "release github.com/etcd-io/etcd/latest" {
 		t.Errorf("unexpected release call: %s", fetcher.calls[1])
+	}
+	if _, ok := repo["etcd"]; ok {
+		t.Error("the entry name should be stored under 'name', not under its own name")
+	}
+}
+
+func TestDefaultAssetFilter(t *testing.T) {
+	values := etcdValues()
+	delete(values, "asset_filter")
+	fetcher := newEtcdFetcher()
+	// only matches when {{ name }} renders empty
+	fetcher.release.Assets = append(fetcher.release.Assets,
+		github.Asset{Name: "etcd-tools-v3.5.0-linux-" + runtime.GOARCH + ".tar.gz", URL: "https://example.com/tools.tar.gz"})
+	repo, err := NewRepo("etcd", values, fetcher)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assets := repo["assets"].([]map[string]any)
+	if len(assets) != 1 || assets[0]["name"] != "etcd-v3.5.0-linux-"+runtime.GOARCH+".tar.gz" {
+		t.Errorf("unexpected assets: %v", assets)
 	}
 }
 
