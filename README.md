@@ -67,8 +67,9 @@ run specbuilder on that architecture, or set `package_arch` and `binary_arch` in
 
 `-changed` compares the config with an older version of it (for example the one on the base branch of a pull
 request) and prints the repositories that are new or have other values, one per line, without generating anything or
-calling the GitHub API. Comments and the order of keys don't count. When `template` or `dest` changed, all
-repositories are printed. Repositories that were removed are left out.
+calling the GitHub API. Comments and the order of keys don't count. When `dest` changed, all repositories are
+printed, and when the default `template` changed, all repositories that use it. Repositories that were removed are
+left out. Changes to the contents of template files are not detected.
 
 Together with `-only`, a pull request that bumps a version only generates (and builds) that package:
 
@@ -107,6 +108,25 @@ repositories:
 Every key under `repositories` is a package. Its values are available in the template, and can contain Jinja2
 expressions themselves (like `{{ repository }}` above). Templates are rendered repeatedly until the output no longer
 changes, so nested expressions are resolved too.
+
+### Per-entry templates
+
+An entry can use another template than the default by setting its own `template`. The default `template` can then be
+left out, as long as every entry sets one:
+
+```yaml
+template: /usr/rpmbuilder/templates/spec.j2
+repositories:
+  pgfga:
+    organization: pgvillage-tools
+  wal-g-pg:
+    organization: pgvillage-build
+    repository: wal-g-builder
+    template: /usr/rpmbuilder/templates/prebuilt.j2
+```
+
+Template paths are not rendered, and relative paths are relative to the working directory (like the default
+`template`). The output is named `<name>-<arch>.spec` for every template.
 
 ### Variables
 
