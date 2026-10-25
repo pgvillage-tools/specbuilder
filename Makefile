@@ -38,7 +38,7 @@ endif
 
 .PHONY: test
 test:
-	go test $$(go list ./... | grep -v github.com/pgvillage-tools/orion/tests) -coverprofile cover.out -coverpkg=./...
+	go test $$(go list ./... | grep -v github.com/pgvillage-tools/specbuilder/tests) -coverprofile cover.out -coverpkg=./...
 
 .PHONY: install-go-test-coverage
 install-go-test-coverage:

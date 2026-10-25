@@ -88,7 +88,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38 # 2.0.0
 
   unit-test:
     name: Run unit tests
@@ -109,7 +109,7 @@ jobs:
         run: make test
       - name: check test coverage
         id: coverage
-        uses: vladopajic/go-test-coverage@v2
+        uses: vladopajic/go-test-coverage@239670d50ed072bfce8b9ab1765227a53429d664 # v2.20.1
         with:
           config: .testcoverage.yaml
           profile: cover.out
@@ -130,14 +130,14 @@ jobs:
             echo "No open pull request found for this branch."
           fi
       - name: create badge
-        uses: vladopajic/go-test-coverage@v2
+        uses: vladopajic/go-test-coverage@239670d50ed072bfce8b9ab1765227a53429d664 # v2.20.1
         with:
           profile: cover.out
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
           git-branch: badges
       - name: post coverage report
         if: env.pull_request_id
-        uses: thollander/actions-comment-pull-request@v3
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b # v3.0.1
         continue-on-error: true #we need pull_request_target or this will fail when not running pr in BD organisation
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
