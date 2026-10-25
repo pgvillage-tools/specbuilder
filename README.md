@@ -123,7 +123,7 @@ Values from the config always take precedence over values read from GitHub.
 | `url`            | `https://<site>/<organization>/<repository>`               | Project url                                                         |
 | `package_arch`   | current architecture, e.g. `x86_64`, `aarch64`             | RPM architecture, used in the spec file name and `BuildArch`        |
 | `binary_arch`    | current Go architecture, e.g. `amd64`, `arm64`             | Architecture as typically used in release asset names               |
-| `target_release` | `latest`                                                   | Release to read, e.g. `latest` or `tags/v1.2.3`                     |
+| `target_release` | `latest`                                                   | `latest` or a tag, e.g. `v1.2.3`; `tags/v1.2.3` also works          |
 | `asset_filter`   | `{{ name }}-{{ version }}-linux-{{ binary_arch }}.tar.gz$` | Regular expression (after rendering) to select release assets       |
 | `repo_name`      | GitHub API                                                 | Repository name as reported by GitHub                               |
 | `description`    | GitHub API                                                 | Repository description                                              |

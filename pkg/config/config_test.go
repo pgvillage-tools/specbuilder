@@ -73,7 +73,7 @@ repositories:
   same:
     organization: org
   bumped:
-    target_release: tags/v1.0.0
+    target_release: v1.0.0
     files:
       - src: a
   removed:
@@ -93,7 +93,7 @@ repositories:
   bumped:
     files:
       - src: a
-    target_release: tags/v1.0.0
+    target_release: v1.0.0
 `, nil},
 		{"bumped and added", `template: spec.j2
 dest: /out
@@ -101,7 +101,7 @@ repositories:
   same:
     organization: org
   bumped:
-    target_release: tags/v1.0.1
+    target_release: v1.0.1
     files:
       - src: a
   added:
@@ -112,7 +112,7 @@ repositories:
   same:
     organization: org
   bumped:
-    target_release: tags/v1.0.0
+    target_release: v1.0.0
     files:
       - src: b
 `, []string{"bumped"}},
@@ -122,7 +122,7 @@ repositories:
   same:
     organization: org
   bumped:
-    target_release: tags/v1.0.0
+    target_release: v1.0.0
 `, []string{"same", "bumped"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

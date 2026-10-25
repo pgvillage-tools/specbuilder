@@ -72,3 +72,36 @@ func TestGetRelease(t *testing.T) {
 		t.Errorf("unexpected release: %+v", release)
 	}
 }
+
+func TestGetReleaseByTag(t *testing.T) {
+	for _, release := range []string{"v1.0.0", "tags/v1.0.0"} {
+		t.Run(release, func(t *testing.T) {
+			c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path != "/repos/org/repo/releases/tags/v1.0.0" {
+					http.NotFound(w, r)
+					return
+				}
+				_, _ = w.Write([]byte(`{"tag_name":"v1.0.0"}`))
+			})
+			got, err := c.GetRelease("github.com", "org", "repo", release)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got.TagName != "v1.0.0" {
+				t.Errorf("unexpected release: %+v", got)
+			}
+		})
+	}
+}
+
+func TestReleasePath(t *testing.T) {
+	for release, want := range map[string]string{
+		"latest":      "latest",
+		"v1.0.0":      "tags/v1.0.0",
+		"tags/v1.0.0": "tags/v1.0.0",
+	} {
+		if got := releasePath(release); got != want {
+			t.Errorf("releasePath(%q) = %q, want %q", release, got, want)
+		}
+	}
+}
