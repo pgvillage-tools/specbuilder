@@ -42,9 +42,9 @@ type Fetcher interface {
 type Repo map[string]any
 
 // NewRepo builds the template context for a repository, reading repository and release info with fetcher.
-func NewRepo(name string, values map[string]any, fetcher Fetcher) (Repo, error) {
+func NewRepo(entry string, values map[string]any, fetcher Fetcher) (Repo, error) {
 	values = maps.Clone(values)
-	values[name] = name
+	values[name] = entry
 	setDefault(values, "site", "github.com")
 	setDefault(values, "repository", values[name])
 	setDefault(values, "organization", values["repository"])
@@ -56,7 +56,7 @@ func NewRepo(name string, values map[string]any, fetcher Fetcher) (Repo, error) 
 		"package_arch":   PackageArch(runtime.GOARCH),
 		"binary_arch":    runtime.GOARCH,
 		"target_release": "latest",
-		"package_name":   name,
+		"package_name":   entry,
 		"asset_filter":   "{{ name }}-{{ version }}-linux-{{ binary_arch }}.tar.gz$",
 	}
 
