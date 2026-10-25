@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Generate SBOM
-        uses: CycloneDX/gh-gomod-generate-sbom@v2
+        uses: CycloneDX/gh-gomod-generate-sbom@efc74245d6802c8cefd925620515442756c70d8f # v2.0.0
         with:
           version: v1
           # added assert-licenses as required by dependency-track
@@ -31,7 +31,7 @@ jobs:
 
       - name: Generate LICENSES.md
         if: ${{ matrix.goarch == 'amd64' && matrix.goos == 'linux' }}
-        uses: mvdkleijn/licenses-action@v1
+        uses: mvdkleijn/licenses-action@460c50b2b78b9e51fa9570bba5f803255a199b72 # v1.2.2
         with:
           # We only use the linux_amd64 variant here for generating the LICENSES.md
           sbom: sources_linux_amd64.sbom.xml
@@ -49,7 +49,7 @@ jobs:
             {{end}}
 
       - name: Add SBOM and LICENSES.md to release
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           files: |
             sources_${{ matrix.goos }}_${{ matrix.goarch }}.sbom.xml
