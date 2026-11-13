@@ -8,10 +8,6 @@ on:
 env:
   # Golang version to use across CI steps
   GOLANG_VERSION: '1.26' # Updated to match go.mod requirement (go 1.26.0)
-  DOWNLOAD_URL: https://github.com/etcd-io/etcd/releases/download
-  ETCD_VER: v3.6.8
-  ETCD_PATH: /usr/local/bin/
-  ETCD_BIN: /usr/local/bin/etcd
 
 permissions:
   contents: read
