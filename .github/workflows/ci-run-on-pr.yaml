@@ -138,26 +138,6 @@ jobs:
       - name: Test
         run: make e2e-test
 
-  check-e2e-status:
-    runs-on: ubuntu-latest
-    needs: e2e-test
-    if: always() # Cruciaal: moet altijd draaien
-    steps:
-      - name: Evaluate e2e status
-        run: |
-          RESULT="${{ needs.e2e-test.result }}"
-          
-          echo "E2E result: $RESULT"
-
-          if [ "$RESULT" = "failure" ]; then
-            exit 1
-          elif [ "$RESULT" = "success" ] || [ "$RESULT" = "skipped" ]; then
-            exit 0
-          else
-            echo "Tests were cancelled."
-            exit 1
-          fi
-
   # The only required check of this workflow, so the ruleset doesn't change when jobs are added. It must always run,
   # and only passes when every job it needs succeeded (a skipped required check would count as a pass).
   ci-result:
@@ -169,7 +149,6 @@ jobs:
       - shellcheck
       - unit-test
       - e2e-test
-      - check-e2e-status
     if: always()
     steps:
       - name: Evaluate the results
